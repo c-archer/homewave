@@ -1,7 +1,6 @@
 # RoomDeck Audio
 
 [![CI](https://github.com/c-archer/homewave/actions/workflows/ci.yml/badge.svg)](https://github.com/c-archer/homewave/actions/workflows/ci.yml)
-[![Donate with PayPal](https://www.paypalobjects.com/en_GB/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/donate/?business=DNNQP7TDESHLC&no_recurring=0&currency_code=GBP)
 
 <img src="Resources/RoomDeckAudioIcon.png" alt="RoomDeck Audio app icon" width="160">
 
@@ -65,7 +64,7 @@ brew untap c-archer/roomdeck-audio
 Download the Apple Silicon ZIP and matching SHA-256 file from [GitHub Releases](https://github.com/c-archer/homewave/releases), then verify it:
 
 ```sh
-shasum -a 256 -c "RoomDeck-Audio-0.1.0-beta.2-arm64.zip.sha256"
+shasum -a 256 -c "RoomDeck-Audio-0.1.0-beta.3-arm64.zip.sha256"
 ```
 
 Official releases should be Developer ID signed and notarized. The current beta is ad-hoc signed; do not bypass a macOS warning for a build you do not trust.
@@ -113,6 +112,12 @@ The full check formats and tests Swift, tests the Worker, runs legal-release gua
 - `Dependabot`: weekly GitHub Actions updates
 
 See [Contributing](CONTRIBUTING.md), [Architecture](docs/ARCHITECTURE.md), [Asset Provenance](docs/ASSET_PROVENANCE.md), and [Releasing](docs/RELEASING.md).
+
+## Support Development
+
+If you like RoomDeck Audio and would like to support its development, or simply buy me a coffee, you can donate securely through PayPal.
+
+[![Donate with PayPal](https://img.shields.io/badge/Donate_with-PayPal-0070BA?logo=paypal&logoColor=white)](https://www.paypal.com/donate/?business=DNNQP7TDESHLC&no_recurring=0&currency_code=GBP)
 
 ## License
 
