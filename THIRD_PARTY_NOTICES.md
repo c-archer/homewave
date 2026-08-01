@@ -6,4 +6,4 @@ Sonos is a trademark of Sonos, Inc. Apple, macOS, and SF Symbols are trademarks 
 
 The README donation control references a button image hosted by PayPal. PayPal and the PayPal logo are marks of PayPal, Inc.; the project does not bundle or modify that image.
 
-The MIT licence in this repository applies to project source and original contributed artwork. It does not grant rights in third-party software, services, content, or marks.
+The MIT licence in this repository applies to project source. RoomDeck Audio names, logos, and brand assets remain the property of the project owner and are not licensed for unrelated reuse. The licence does not grant rights in third-party software, services, content, or marks.

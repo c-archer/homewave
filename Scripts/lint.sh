@@ -2,7 +2,13 @@
 set -eu
 
 swift format lint --configuration .swift-format --recursive --strict Sources Tests Package.swift
-sh -n Scripts/build-app.sh Scripts/lint.sh Scripts/test.sh Scripts/validate.sh
+sh -n \
+    Scripts/build-app.sh \
+    Scripts/generate-icons.sh \
+    Scripts/lint.sh \
+    Scripts/test.sh \
+    Scripts/validate.sh \
+    Scripts/verify-brand-assets.sh
 
 NODE_BIN="${NODE_BIN:-$(command -v node || true)}"
 if [ -n "$NODE_BIN" ]; then

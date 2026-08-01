@@ -77,9 +77,11 @@ struct RoomDeckAudioApp: App {
 }
 
 enum Theme {
-    static let black = Color(red: 0.005, green: 0.005, blue: 0.005)
-    static let panel = Color(red: 0.075, green: 0.075, blue: 0.075)
-    static let text = Color.white.opacity(0.92)
+    static let black = Color(red: 15 / 255, green: 17 / 255, blue: 23 / 255)
+    static let panel = Color(red: 24 / 255, green: 27 / 255, blue: 37 / 255)
+    static let text = Color(red: 247 / 255, green: 248 / 255, blue: 250 / 255)
+    static let blue = Color(red: 59 / 255, green: 130 / 255, blue: 246 / 255)
+    static let purple = Color(red: 124 / 255, green: 77 / 255, blue: 255 / 255)
 }
 
 @MainActor
@@ -449,6 +451,7 @@ struct SonosWindow: View {
         .background(WindowSizeGuard())
         .foregroundStyle(Theme.text)
         .font(.system(size: 14))
+        .tint(Theme.blue)
         .background(Theme.black)
         .onAppear { model.configureMediaCommands() }
         .task { await model.restoreSonosAccountSession() }
@@ -472,12 +475,10 @@ struct SignInView: View {
                 Spacer()
 
                 VStack(spacing: 20) {
-                    Image(systemName: "speaker.wave.3.fill")
-                        .font(.system(size: 38, weight: .semibold))
-                        .foregroundStyle(.black)
-                        .frame(width: 76, height: 76)
-                        .background(Color.white)
-                        .clipShape(Circle())
+                    Image(nsImage: NSApplication.shared.applicationIconImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 118, height: 118)
 
                     VStack(spacing: 9) {
                         Text("Sign in to \(ProductIdentity.name)")
@@ -503,8 +504,8 @@ struct SignInView: View {
                         .frame(minWidth: 190)
                     }
                     .buttonStyle(.borderedProminent)
-                    .tint(.white)
-                    .foregroundStyle(.black)
+                    .tint(Theme.blue)
+                    .foregroundStyle(Theme.text)
                     .disabled(model.isSonosSigningIn)
 
                     Text(model.sonosAccountStatus)
@@ -572,9 +573,23 @@ struct MainView: View {
 
 struct ProductWordmark: View {
     var body: some View {
-        Text("ROOMDECK AUDIO")
-            .font(.system(size: 22, weight: .black))
-            .tracking(4)
+        HStack(spacing: 10) {
+            Image(nsImage: NSApplication.shared.applicationIconImage)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 34, height: 34)
+
+            HStack(spacing: 5) {
+                Text("ROOMDECK")
+                    .foregroundStyle(Theme.text)
+                Text("AUDIO")
+                    .foregroundStyle(Theme.blue)
+            }
+            .font(.system(size: 20, weight: .semibold))
+            .tracking(3)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(ProductIdentity.name)
     }
 }
 

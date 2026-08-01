@@ -24,7 +24,18 @@ if find Resources -type f \
     fail "a third-party service or station asset appears to be bundled"
 fi
 
-for required in LEGAL.md PRIVACY.md THIRD_PARTY_NOTICES.md docs/ASSET_PROVENANCE.md Resources/PrivacyInfo.xcprivacy; do
+for required in \
+    LEGAL.md \
+    PRIVACY.md \
+    THIRD_PARTY_NOTICES.md \
+    docs/ASSET_PROVENANCE.md \
+    docs/BRAND.md \
+    docs/brand/RoomDeck-Audio-Brand-Guidelines.pdf \
+    Resources/PrivacyInfo.xcprivacy \
+    Resources/RoomDeckAudioBrand.png \
+    Resources/RoomDeckAudioMark.png \
+    Resources/RoomDeckAudioIcon.png \
+    Resources/RoomDeckAudio.icns; do
     test -s "$required" || fail "$required is required for public releases"
 done
 

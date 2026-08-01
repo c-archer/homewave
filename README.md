@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/c-archer/homewave/actions/workflows/ci.yml/badge.svg)](https://github.com/c-archer/homewave/actions/workflows/ci.yml)
 
-<img src="Resources/RoomDeckAudioIcon.png" alt="RoomDeck Audio app icon" width="160">
+<img src="Resources/RoomDeckAudioBrand.png" alt="RoomDeck Audio logo" width="240">
 
 RoomDeck Audio is an independent, native Apple Silicon macOS controller compatible with Sonos systems. It provides account favorites, room and group controls, current playback, artwork, volume, transport controls, and macOS media-key support.
 
@@ -112,7 +112,7 @@ The full check formats and tests Swift, tests the Worker, runs legal-release gua
 - `Release`: tagged arm64 ZIPs, SHA-256 checksums, optional Developer ID signing, and optional notarization
 - `Dependabot`: weekly GitHub Actions updates
 
-See [Contributing](CONTRIBUTING.md), [Architecture](docs/ARCHITECTURE.md), [Asset Provenance](docs/ASSET_PROVENANCE.md), and [Releasing](docs/RELEASING.md).
+See [Contributing](CONTRIBUTING.md), [Architecture](docs/ARCHITECTURE.md), [Brand Guidelines](docs/BRAND.md), [Asset Provenance](docs/ASSET_PROVENANCE.md), and [Releasing](docs/RELEASING.md).
 
 ## Support Development
 

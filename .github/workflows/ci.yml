@@ -30,6 +30,9 @@ jobs:
       - name: Run legal-release guard
         run: ./Scripts/legal-audit.sh
 
+      - name: Verify brand assets
+        run: ./Scripts/verify-brand-assets.sh
+
       - name: Check Swift formatting
         run: swift format lint --configuration .swift-format --recursive --strict Sources Tests Package.swift
 

@@ -44,6 +44,8 @@ mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
 
 cp "${BIN_DIR}/${EXECUTABLE_NAME}" "${MACOS_DIR}/${EXECUTABLE_NAME}"
 cp "Resources/RoomDeckAudio.icns" "${RESOURCES_DIR}/RoomDeckAudio.icns"
+cp "Resources/RoomDeckAudioBrand.png" "${RESOURCES_DIR}/RoomDeckAudioBrand.png"
+cp "Resources/RoomDeckAudioMark.png" "${RESOURCES_DIR}/RoomDeckAudioMark.png"
 cp "Resources/PrivacyInfo.xcprivacy" "${RESOURCES_DIR}/PrivacyInfo.xcprivacy"
 
 cat > "${CONTENTS_DIR}/Info.plist" <<'PLIST'

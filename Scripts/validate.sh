@@ -3,6 +3,7 @@ set -eu
 
 ./Scripts/lint.sh
 ./Scripts/legal-audit.sh
+./Scripts/verify-brand-assets.sh
 ./Scripts/test.sh
 
 NODE_BIN="${NODE_BIN:-$(command -v node || true)}"
