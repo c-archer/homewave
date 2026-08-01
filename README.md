@@ -65,7 +65,7 @@ brew untap c-archer/roomdeck-audio
 Download the Apple Silicon ZIP and matching SHA-256 file from [GitHub Releases](https://github.com/c-archer/homewave/releases), then verify it:
 
 ```sh
-shasum -a 256 -c "RoomDeck-Audio-0.1.0-beta.3-arm64.zip.sha256"
+shasum -a 256 -c "RoomDeck-Audio-0.1.0-beta.4-arm64.zip.sha256"
 ```
 
 Official releases should be Developer ID signed and notarized. The current beta is ad-hoc signed; do not bypass a macOS warning for a build you do not trust.
