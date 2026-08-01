@@ -30,6 +30,36 @@ final class CloudModelTests: XCTestCase {
         XCTAssertEqual(value.nowPlaying, "Example Track")
     }
 
+    func testFavoriteResourceTypesMapToLibraryFilters() {
+        XCTAssertEqual(CloudContentKind(resourceType: "ALBUM"), .album)
+        XCTAssertEqual(CloudContentKind(resourceType: "TRACKLIST"), .playlist)
+        XCTAssertEqual(CloudContentKind(resourceType: "STREAM"), .station)
+        XCTAssertEqual(CloudContentKind(resourceType: "TRACK"), .other)
+        XCTAssertEqual(CloudContentKind(resourceType: nil), .other)
+    }
+
+    func testMusicFiltersAndSearchUseSavedContentMetadata() {
+        let favorite = CloudFavorite(
+            id: "favorite-id",
+            title: "Example Album",
+            subtitle: "Example Artist",
+            imageURL: nil,
+            serviceName: "Example Music",
+            kind: .album
+        )
+        let playlist = CloudPlaylist(id: "playlist-id", name: "Evening Mix", trackCount: 12)
+
+        XCTAssertTrue(MusicLibraryFilter.all.includes(favorite))
+        XCTAssertTrue(MusicLibraryFilter.favorites.includes(favorite))
+        XCTAssertTrue(MusicLibraryFilter.albums.includes(favorite))
+        XCTAssertFalse(MusicLibraryFilter.stations.includes(favorite))
+        XCTAssertTrue(MusicLibraryFilter.playlists.includesSonosPlaylists)
+        XCTAssertTrue(favorite.matchesLibraryQuery("artist"))
+        XCTAssertTrue(favorite.matchesLibraryQuery("music"))
+        XCTAssertTrue(playlist.matchesLibraryQuery("evening"))
+        XCTAssertFalse(playlist.matchesLibraryQuery("morning"))
+    }
+
     private func group(state: String) -> CloudGroup {
         CloudGroup(
             id: "group-id",

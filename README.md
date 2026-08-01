@@ -21,7 +21,8 @@ RoomDeck Audio is not affiliated with, endorsed by, or sponsored by Sonos, Inc. 
 - Rooms, groups, current playback, service metadata, and artwork
 - Create, edit, and split speaker groups
 - Play, pause, previous, next, volume, and macOS media-key controls
-- Play items saved in Sonos Favorites
+- Search and filter albums, playlists, and stations saved in Sonos Favorites
+- Browse and play household Sonos playlists
 - OAuth tokens stored in the current user's macOS Keychain
 
 Direct music-service catalogue search is intentionally not included. Sonos does not document a general third-party catalogue API for this integration, and the project does not ship reverse-engineered private interfaces.

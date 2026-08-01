@@ -7,6 +7,8 @@ All notable changes to RoomDeck Audio are documented here.
 ### Added
 
 - Homebrew Cask and tap installation instructions
+- Search and content-type filters for music saved to the signed-in Sonos account
+- Sonos playlist discovery and playback through the documented Control API
 
 ### Fixed
 

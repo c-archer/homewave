@@ -88,6 +88,7 @@ final class SonosModel: ObservableObject {
     @Published private(set) var isSonosSigningIn = false
     @Published private(set) var cloudGroups: [CloudGroup] = []
     @Published private(set) var cloudFavorites: [CloudFavorite] = []
+    @Published private(set) var cloudPlaylists: [CloudPlaylist] = []
     @Published private(set) var cloudPlayers: [CloudPlayer] = []
     @Published private(set) var ungroupingCloudGroupIDs: Set<String> = []
     @Published private(set) var isLoadingCloudData = false
@@ -164,7 +165,7 @@ final class SonosModel: ObservableObject {
 
     func refreshCloudData() async {
         guard isSonosAccountConnected, !isLoadingCloudData, !isRefreshingCloudData else { return }
-        let initialLoad = cloudGroups.isEmpty && cloudFavorites.isEmpty
+        let initialLoad = cloudGroups.isEmpty && cloudFavorites.isEmpty && cloudPlaylists.isEmpty
         if initialLoad {
             isLoadingCloudData = true
         } else {
@@ -179,6 +180,7 @@ final class SonosModel: ObservableObject {
             let snapshot = try await cloudControl.snapshot()
             cloudGroups = snapshot.groups
             cloudFavorites = snapshot.favorites
+            cloudPlaylists = snapshot.playlists
             cloudPlayers = snapshot.players
             if selectedCloudGroupID == nil
                 || !snapshot.groups.contains(where: { $0.id == selectedCloudGroupID })
@@ -292,6 +294,19 @@ final class SonosModel: ObservableObject {
         }
     }
 
+    func playCloudPlaylist(_ playlist: CloudPlaylist, on group: CloudGroup) {
+        selectCloudGroup(group)
+        Task {
+            do {
+                try await cloudControl.loadPlaylist(playlist, groupID: group.id)
+                try? await Task.sleep(for: .milliseconds(500))
+                await refreshCloudData()
+            } catch {
+                sonosAccountStatus = error.localizedDescription
+            }
+        }
+    }
+
     func createCloudGroup(playerIDs: [String], keepingPlaybackFrom group: CloudGroup?) {
         Task {
             do {
@@ -390,6 +405,7 @@ final class SonosModel: ObservableObject {
                 isSonosSigningIn = false
                 cloudGroups = []
                 cloudFavorites = []
+                cloudPlaylists = []
                 cloudPlayers = []
                 selectedCloudGroupID = nil
                 sonosAccountStatus = "Sign in to connect your compatible Sonos system"
@@ -523,7 +539,7 @@ struct MainView: View {
                     .padding(.bottom, 18)
 
                 HStack(spacing: 0) {
-                    FavoritesView()
+                    MusicLibraryView()
                         .padding(.leading, 22)
                         .padding(.trailing, 18)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -670,21 +686,77 @@ struct SettingsView: View {
     }
 }
 
-struct FavoritesView: View {
+enum MusicLibraryFilter: String, CaseIterable, Identifiable {
+    case all = "All"
+    case favorites = "Favorites"
+    case albums = "Albums"
+    case playlists = "Playlists"
+    case stations = "Stations"
+
+    var id: Self { self }
+
+    func includes(_ favorite: CloudFavorite) -> Bool {
+        switch self {
+        case .all, .favorites: true
+        case .albums: favorite.kind == .album
+        case .playlists: favorite.kind == .playlist
+        case .stations: favorite.kind == .station
+        }
+    }
+
+    var includesSonosPlaylists: Bool {
+        self == .all || self == .playlists
+    }
+}
+
+extension CloudFavorite {
+    func matchesLibraryQuery(_ query: String) -> Bool {
+        [title, subtitle, serviceName, kind.rawValue]
+            .contains { $0.localizedCaseInsensitiveContains(query) }
+    }
+}
+
+extension CloudPlaylist {
+    func matchesLibraryQuery(_ query: String) -> Bool {
+        name.localizedCaseInsensitiveContains(query)
+    }
+}
+
+struct MusicLibraryView: View {
     @EnvironmentObject private var model: SonosModel
+    @State private var searchText = ""
+    @State private var filter: MusicLibraryFilter = .all
 
     private let columns = [
         GridItem(.adaptive(minimum: 150, maximum: 190), spacing: 16, alignment: .top)
     ]
+
+    private var trimmedSearchText: String {
+        searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var favorites: [CloudFavorite] {
+        model.cloudFavorites.filter { favorite in
+            filter.includes(favorite)
+                && (trimmedSearchText.isEmpty || favorite.matchesLibraryQuery(trimmedSearchText))
+        }
+    }
+
+    private var playlists: [CloudPlaylist] {
+        guard filter.includesSonosPlaylists else { return [] }
+        return model.cloudPlaylists.filter { playlist in
+            trimmedSearchText.isEmpty || playlist.matchesLibraryQuery(trimmedSearchText)
+        }
+    }
 
     var body: some View {
         ScrollView(showsIndicators: true) {
             VStack(alignment: .leading, spacing: 18) {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Sonos Favorites")
+                        Text("Music")
                             .font(.system(size: 20, weight: .bold))
-                        Text("Select a favorite to play it on the active group.")
+                        Text("Search and play content saved to your Sonos account.")
                             .font(.system(size: 13))
                             .foregroundStyle(Color.white.opacity(0.58))
                     }
@@ -699,31 +771,88 @@ struct FavoritesView: View {
                         }
                     }
                     .buttonStyle(.plain)
-                    .help("Refresh favorites")
+                    .help("Refresh music")
                 }
+
+                HStack(spacing: 10) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundStyle(Color.white.opacity(0.56))
+                    TextField("Search saved music", text: $searchText)
+                        .textFieldStyle(.plain)
+                        .font(.system(size: 14))
+                    if !searchText.isEmpty {
+                        Button {
+                            searchText = ""
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(Color.white.opacity(0.56))
+                        }
+                        .buttonStyle(.plain)
+                        .help("Clear search")
+                    }
+                }
+                .padding(.horizontal, 12)
+                .frame(height: 38)
+                .background(Theme.panel)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+
+                Picker("Music type", selection: $filter) {
+                    ForEach(MusicLibraryFilter.allCases) { item in
+                        Text(item.rawValue).tag(item)
+                    }
+                }
+                .pickerStyle(.segmented)
 
                 if model.isLoadingCloudData {
                     ProgressView("Loading your Sonos system...")
                 } else if model.cloudGroups.isEmpty {
                     Text(model.sonosAccountStatus)
                         .foregroundStyle(Color.white.opacity(0.62))
-                } else if model.cloudFavorites.isEmpty {
+                } else if favorites.isEmpty && playlists.isEmpty {
                     ContentUnavailableView(
-                        "No Favorites",
-                        systemImage: "star",
-                        description: Text("Favorites saved to your Sonos account will appear here.")
+                        trimmedSearchText.isEmpty ? "No \(filter.rawValue)" : "No Results",
+                        systemImage: trimmedSearchText.isEmpty ? "music.note.list" : "magnifyingglass",
+                        description: Text(emptyStateDescription)
                     )
                     .foregroundStyle(Color.white.opacity(0.68))
                     .frame(maxWidth: .infinity, minHeight: 360)
                 } else if let target = model.selectedCloudGroup ?? model.cloudGroups.first {
-                    LazyVGrid(columns: columns, alignment: .leading, spacing: 22) {
-                        ForEach(model.cloudFavorites) { favorite in
-                            CloudFavoriteCard(favorite: favorite, target: target)
+                    if !favorites.isEmpty {
+                        Text(filter == .all ? "Sonos Favorites" : filter.rawValue)
+                            .font(.system(size: 17, weight: .bold))
+                        LazyVGrid(columns: columns, alignment: .leading, spacing: 22) {
+                            ForEach(favorites) { favorite in
+                                CloudFavoriteCard(favorite: favorite, target: target)
+                            }
+                        }
+                    }
+
+                    if !playlists.isEmpty {
+                        Text("Sonos Playlists")
+                            .font(.system(size: 17, weight: .bold))
+                            .padding(.top, favorites.isEmpty ? 0 : 8)
+                        LazyVGrid(columns: columns, alignment: .leading, spacing: 22) {
+                            ForEach(playlists) { playlist in
+                                CloudPlaylistCard(playlist: playlist, target: target)
+                            }
                         }
                     }
                 }
             }
             .padding(.bottom, 30)
+        }
+    }
+
+    private var emptyStateDescription: String {
+        if !trimmedSearchText.isEmpty {
+            return "Try another title, service, or content type."
+        }
+        switch filter {
+        case .all: return "Favorites and Sonos playlists saved to your account will appear here."
+        case .favorites: return "Items saved to Sonos Favorites will appear here."
+        case .albums: return "Albums saved to Sonos Favorites will appear here."
+        case .playlists: return "Saved playlist favorites and Sonos playlists will appear here."
+        case .stations: return "Stations saved to Sonos Favorites will appear here."
         }
     }
 }
@@ -750,6 +879,55 @@ struct CloudFavoriteCard: View {
                                 .foregroundStyle(Color.white.opacity(0.58))
                                 .lineLimit(1)
                         }
+                    }
+                    Spacer(minLength: 0)
+                    ZStack {
+                        Circle().fill(Color.white)
+                        Image(systemName: "play.fill")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(.black)
+                            .offset(x: 1)
+                    }
+                    .frame(width: 30, height: 30)
+                    .accessibilityHidden(true)
+                }
+                .frame(minHeight: 38, alignment: .top)
+            }
+            .frame(width: 156, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help("Play on \(target.name)")
+    }
+}
+
+struct CloudPlaylistCard: View {
+    @EnvironmentObject private var model: SonosModel
+    let playlist: CloudPlaylist
+    let target: CloudGroup
+
+    var body: some View {
+        Button {
+            model.playCloudPlaylist(playlist, on: target)
+        } label: {
+            VStack(alignment: .leading, spacing: 8) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.white.opacity(0.14))
+                    Image(systemName: "music.note.list")
+                        .font(.system(size: 42, weight: .medium))
+                        .foregroundStyle(Color.white.opacity(0.78))
+                }
+                .frame(width: 156, height: 156)
+
+                HStack(alignment: .top, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(playlist.name)
+                            .font(.system(size: 14, weight: .bold))
+                            .lineLimit(2)
+                        Text("\(playlist.trackCount) track\(playlist.trackCount == 1 ? "" : "s")")
+                            .font(.system(size: 12))
+                            .foregroundStyle(Color.white.opacity(0.58))
                     }
                     Spacer(minLength: 0)
                     ZStack {

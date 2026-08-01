@@ -27,11 +27,36 @@ struct CloudFavorite: Identifiable, Equatable, Sendable {
     let title: String
     let subtitle: String
     let imageURL: URL?
+    let serviceName: String
+    let kind: CloudContentKind
+}
+
+enum CloudContentKind: String, Sendable {
+    case album
+    case playlist
+    case station
+    case other
+
+    init(resourceType: String?) {
+        switch resourceType?.uppercased() {
+        case "ALBUM": self = .album
+        case "PLAYLIST", "TRACKLIST": self = .playlist
+        case "PROGRAM", "STATION", "STREAM": self = .station
+        default: self = .other
+        }
+    }
+}
+
+struct CloudPlaylist: Identifiable, Equatable, Sendable {
+    let id: String
+    let name: String
+    let trackCount: Int
 }
 
 struct CloudSnapshot: Sendable {
     let groups: [CloudGroup]
     let favorites: [CloudFavorite]
+    let playlists: [CloudPlaylist]
     let players: [CloudPlayer]
 }
 
@@ -60,7 +85,7 @@ actor SonosCloudControl {
     func snapshot() async throws -> CloudSnapshot {
         let households: HouseholdsResponse = try await request(pathComponents: ["households"])
         guard let householdID = households.households.first?.id else {
-            return CloudSnapshot(groups: [], favorites: [], players: [])
+            return CloudSnapshot(groups: [], favorites: [], playlists: [], players: [])
         }
 
         async let groupsResponse: GroupsResponse = request(
@@ -69,7 +94,14 @@ actor SonosCloudControl {
         async let favoritesResponse: FavoritesResponse = request(
             pathComponents: ["households", householdID, "favorites"]
         )
-        let (groups, favorites) = try await (groupsResponse, favoritesResponse)
+        async let playlistsResponse: PlaylistsResponse = request(
+            pathComponents: ["households", householdID, "playlists"]
+        )
+        let (groups, favorites, playlists) = try await (
+            groupsResponse,
+            favoritesResponse,
+            playlistsResponse
+        )
 
         let enrichedGroups = try await withThrowingTaskGroup(of: CloudGroup.self) { group in
             for item in groups.groups {
@@ -114,6 +146,7 @@ actor SonosCloudControl {
         return CloudSnapshot(
             groups: groupsWithFavoriteArtwork,
             favorites: cloudFavorites,
+            playlists: playlists.playlists.map(CloudPlaylist.init),
             players: groups.players.map { CloudPlayer(id: $0.id, name: $0.name) }
         )
     }
@@ -139,6 +172,17 @@ actor SonosCloudControl {
         try await command(
             pathComponents: ["groups", groupID, "favorites"],
             body: ["favoriteId": favorite.id, "action": "PLAY_NOW"]
+        )
+    }
+
+    func loadPlaylist(_ playlist: CloudPlaylist, groupID: String) async throws {
+        try await command(
+            pathComponents: ["groups", groupID, "playlists"],
+            body: [
+                "playlistId": playlist.id,
+                "action": "PLAY_NOW",
+                "playOnCompletion": true,
+            ]
         )
     }
 
@@ -319,15 +363,43 @@ private struct Favorite: Decodable {
     let title: String?
     let description: String?
     let imageUrl: String?
+    let resource: FavoriteResource?
+    let service: FavoriteService?
 
-    enum CodingKeys: String, CodingKey { case id, name, title, description, imageUrl }
+    enum CodingKeys: String, CodingKey {
+        case id, name, title, description, imageUrl, resource, service
+    }
+}
+private struct FavoriteResource: Decodable {
+    let type: String?
+}
+private struct FavoriteService: Decodable {
+    let name: String?
+}
+private struct PlaylistsResponse: Decodable {
+    let playlists: [Playlist]
+}
+private struct Playlist: Decodable {
+    let id: String
+    let name: String
+    let trackCount: Int?
 }
 
 private extension CloudFavorite {
     init(_ favorite: Favorite) {
         id = favorite.id
         title = favorite.name ?? favorite.title ?? "Sonos Favorite"
-        subtitle = favorite.description ?? "Sonos Favorite"
+        serviceName = favorite.service?.name ?? "Sonos"
+        subtitle = favorite.description ?? serviceName
         imageURL = NetworkSecurityPolicy.validatedRemoteAssetURL(favorite.imageUrl)
+        kind = CloudContentKind(resourceType: favorite.resource?.type)
+    }
+}
+
+private extension CloudPlaylist {
+    init(_ playlist: Playlist) {
+        id = playlist.id
+        name = playlist.name
+        trackCount = max(0, playlist.trackCount ?? 0)
     }
 }
