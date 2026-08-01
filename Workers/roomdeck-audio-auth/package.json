@@ -1,0 +1,12 @@
+{
+  "name": "roomdeck-audio-sonos-auth",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "node --check src/index.js && node --check test/index.test.js",
+    "test": "node --test test/index.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

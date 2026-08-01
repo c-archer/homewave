@@ -1,0 +1,15 @@
+name = "roomdeck-audio-auth"
+main = "src/index.js"
+compatibility_date = "2026-07-31"
+
+[[kv_namespaces]]
+binding = "OAUTH_SESSIONS"
+id = "replace-with-your-kv-namespace-id"
+
+[vars]
+SONOS_CLIENT_ID = "replace-with-your-client-id"
+SONOS_REDIRECT_URI = "https://example.com/sonos/callback"
+APP_CALLBACK_URL = "roomdeck-audio://sonos-auth"
+
+# Add SONOS_CLIENT_SECRET with:
+# npx wrangler secret put SONOS_CLIENT_SECRET

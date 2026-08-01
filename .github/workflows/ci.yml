@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  swift:
+    name: Swift build, test, and package
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Show toolchain
+        run: swift --version
+
+      - name: Run legal-release guard
+        run: ./Scripts/legal-audit.sh
+
+      - name: Check Swift formatting
+        run: swift format lint --configuration .swift-format --recursive --strict Sources Tests Package.swift
+
+      - name: Run Swift tests
+        run: ./Scripts/test.sh --parallel
+
+      - name: Build Apple Silicon app
+        run: APP_VERSION=0.1.0 BUILD_NUMBER="${GITHUB_RUN_NUMBER}" ./Scripts/build-app.sh
+
+      - name: Verify bundle
+        run: |
+          plutil -lint "dist/RoomDeck Audio.app/Contents/Info.plist"
+          plutil -lint "dist/RoomDeck Audio.app/Contents/Resources/PrivacyInfo.xcprivacy"
+          codesign --verify --deep --strict "dist/RoomDeck Audio.app"
+          file "dist/RoomDeck Audio.app/Contents/MacOS/RoomDeckAudio" | grep -q arm64
+
+  worker:
+    name: Worker syntax and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: Workers/roomdeck-audio-auth
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Check syntax
+        run: npm run lint
+
+      - name: Run Worker tests
+        run: npm test

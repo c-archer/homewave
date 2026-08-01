@@ -1,0 +1,51 @@
+name: Bug report
+description: Report a reproducible RoomDeck Audio problem without sharing private account data.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Do not include Sonos tokens, OAuth callback URLs, client secrets, public IP addresses, or private account details.
+  - type: input
+    id: version
+    attributes:
+      label: RoomDeck Audio version
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version and Mac model
+      placeholder: macOS 15.6, MacBook Pro M3
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open...
+        2. Select...
+        3. Observe...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy check
+      options:
+        - label: I removed tokens, callback URLs, client secrets, account details, and speaker IP addresses.
+          required: true
