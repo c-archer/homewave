@@ -22,7 +22,7 @@ That is not trademark clearance. Before a public commercial release, use the [UK
 
 ## Copyright And Content
 
-- The repository does not bundle third-party music-service logos, station logos, album art, or catalogue data.
+- No third-party music-service logos, station logos, album art, or catalogue data are shipped as functional app assets. Documentation screenshots may show content returned at runtime solely to illustrate compatibility and operation.
 - Artwork and metadata returned for the signed-in user's Sonos system are displayed transiently and are not written to an app database.
 - Contributors must not submit copied interface artwork, proprietary source code, credentials, or assets without a documented compatible licence.
 - The MIT licence covers project contributions only. It does not license third-party content or trademarks.

@@ -1,12 +1,17 @@
 # RoomDeck Audio
 
 [![CI](https://github.com/c-archer/homewave/actions/workflows/ci.yml/badge.svg)](https://github.com/c-archer/homewave/actions/workflows/ci.yml)
+[![Donate with PayPal](https://www.paypalobjects.com/en_GB/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/donate/?business=DNNQP7TDESHLC&no_recurring=0&currency_code=GBP)
 
-![RoomDeck Audio app icon](Resources/RoomDeckAudioIcon.png)
+<img src="Resources/RoomDeckAudioIcon.png" alt="RoomDeck Audio app icon" width="160">
 
 RoomDeck Audio is an independent, native Apple Silicon macOS controller compatible with Sonos systems. It provides account favorites, room and group controls, current playback, artwork, volume, transport controls, and macOS media-key support.
 
 RoomDeck Audio is not affiliated with, endorsed by, or sponsored by Sonos, Inc. Sonos is a trademark of Sonos, Inc.
+
+## Screenshot
+
+![RoomDeck Audio music browser and system controls](docs/images/roomdeck-audio-app.png)
 
 > [!IMPORTANT]
 > This beta controls physical audio equipment. The public source uses the documented Sonos Control API only. Review [Legal](LEGAL.md), [Privacy](PRIVACY.md), and [Security](SECURITY.md) before operating or distributing it.
