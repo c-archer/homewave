@@ -2,6 +2,18 @@ import AppKit
 import Foundation
 import Security
 
+struct OneTimeCallbackRegistry {
+    private var tickets: Set<String> = []
+
+    func contains(_ ticket: String) -> Bool {
+        tickets.contains(ticket)
+    }
+
+    mutating func begin(_ ticket: String) -> Bool {
+        tickets.insert(ticket).inserted
+    }
+}
+
 struct SonosCloudSession: Codable, Sendable {
     var accessToken: String
     var refreshToken: String

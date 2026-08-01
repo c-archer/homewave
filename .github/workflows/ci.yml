@@ -48,6 +48,7 @@ jobs:
         run: |
           plutil -lint "dist/RoomDeck Audio.app/Contents/Info.plist"
           plutil -lint "dist/RoomDeck Audio.app/Contents/Resources/PrivacyInfo.xcprivacy"
+          test "$(plutil -extract LSMultipleInstancesProhibited raw "dist/RoomDeck Audio.app/Contents/Info.plist")" = "true"
           codesign --verify --deep --strict "dist/RoomDeck Audio.app"
           file "dist/RoomDeck Audio.app/Contents/MacOS/RoomDeckAudio" | grep -q arm64
 

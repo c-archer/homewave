@@ -51,4 +51,13 @@ final class SonosAuthCallbackTests: XCTestCase {
             XCTAssertNil(SonosAuthCallback(url: url), value)
         }
     }
+
+    func testCallbackTicketCanOnlyBeginOnce() {
+        var registry = OneTimeCallbackRegistry()
+
+        XCTAssertFalse(registry.contains(ticket))
+        XCTAssertTrue(registry.begin(ticket))
+        XCTAssertTrue(registry.contains(ticket))
+        XCTAssertFalse(registry.begin(ticket))
+    }
 }

@@ -8,6 +8,11 @@ All notable changes to RoomDeck Audio are documented here.
 
 - Homebrew Cask and tap installation instructions
 
+### Fixed
+
+- Sonos OAuth callbacks now return to the existing app window instead of opening another sign-in window
+- Replayed OAuth callback tickets are ignored rather than redeemed twice
+
 ## 0.1.0-beta.2 - 2026-08-01
 
 ### Changed

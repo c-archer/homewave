@@ -10,19 +10,49 @@ enum ProductIdentity {
     static let callbackHost = "sonos-auth"
 }
 
+@MainActor
+final class RoomDeckApplicationDelegate: NSObject, NSApplicationDelegate {
+    private var openURLHandler: ((URL) -> Void)?
+    private var pendingURLs: [URL] = []
+
+    func installOpenURLHandler(_ handler: @escaping (URL) -> Void) {
+        openURLHandler = handler
+        let urls = pendingURLs
+        pendingURLs.removeAll()
+        urls.forEach(handler)
+    }
+
+    func application(_ application: NSApplication, open urls: [URL]) {
+        for url in urls {
+            if let openURLHandler {
+                openURLHandler(url)
+            } else {
+                pendingURLs.append(url)
+            }
+        }
+
+        application.activate(ignoringOtherApps: true)
+        application.windows.first?.makeKeyAndOrderFront(nil)
+    }
+}
+
 @main
 struct RoomDeckAudioApp: App {
+    @NSApplicationDelegateAdaptor(RoomDeckApplicationDelegate.self) private var appDelegate
     @StateObject private var model = SonosModel()
 
     var body: some Scene {
-        WindowGroup {
+        Window(ProductIdentity.name, id: "main") {
             SonosWindow()
                 .environmentObject(model)
                 .frame(minWidth: 1_080, minHeight: 680)
                 .background(Theme.black)
-                .onOpenURL { model.completeSonosSignIn(from: $0) }
+                .onAppear {
+                    appDelegate.installOpenURLHandler { url in
+                        model.completeSonosSignIn(from: url)
+                    }
+                }
         }
-        .handlesExternalEvents(matching: ProductIdentity.callbackSchemes)
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentMinSize)
         .defaultSize(width: 1_420, height: 860)
@@ -69,6 +99,7 @@ final class SonosModel: ObservableObject {
     private lazy var cloudControl = SonosCloudControl(session: sonosCloud)
     private var mediaCommandsConfigured = false
     private var pendingSonosSignInState: String?
+    private var sonosSignInCallbackTickets = OneTimeCallbackRegistry()
     private var cloudVolumeTasks: [String: Task<Void, Never>] = [:]
 
     var selectedCloudGroup: CloudGroup? {
@@ -320,6 +351,7 @@ final class SonosModel: ObservableObject {
             sonosAccountStatus = SonosCloudError.invalidCallback.localizedDescription
             return
         }
+        guard !sonosSignInCallbackTickets.contains(callback.ticket) else { return }
         guard
             callback.state
                 == (pendingSonosSignInState
@@ -328,6 +360,7 @@ final class SonosModel: ObservableObject {
             sonosAccountStatus = SonosCloudError.stateMismatch.localizedDescription
             return
         }
+        guard sonosSignInCallbackTickets.begin(callback.ticket) else { return }
 
         sonosAccountStatus = "Completing Sonos sign-in..."
         Task {

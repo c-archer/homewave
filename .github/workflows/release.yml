@@ -119,6 +119,7 @@ jobs:
       - name: Verify and checksum
         run: |
           codesign --verify --deep --strict "dist/RoomDeck Audio.app"
+          test "$(plutil -extract LSMultipleInstancesProhibited raw "dist/RoomDeck Audio.app/Contents/Info.plist")" = "true"
           file "dist/RoomDeck Audio.app/Contents/MacOS/RoomDeckAudio" | grep -q arm64
           ARCHIVE_DIR="$(dirname "$ARCHIVE")"
           ARCHIVE_NAME="$(basename "$ARCHIVE")"
