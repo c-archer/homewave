@@ -15,6 +15,10 @@ final class RoomDeckApplicationDelegate: NSObject, NSApplicationDelegate {
     private var openURLHandler: ((URL) -> Void)?
     private var pendingURLs: [URL] = []
 
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        NSApplication.shared.appearance = NSAppearance(named: .darkAqua)
+    }
+
     func installOpenURLHandler(_ handler: @escaping (URL) -> Void) {
         openURLHandler = handler
         let urls = pendingURLs
@@ -521,6 +525,7 @@ struct SonosWindow: View {
         .font(.system(size: 14))
         .tint(Theme.blue)
         .background(Theme.black)
+        .preferredColorScheme(.dark)
         .onAppear { model.configureMediaCommands() }
         .task { await model.restoreSonosAccountSession() }
     }

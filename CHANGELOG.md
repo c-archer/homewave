@@ -14,6 +14,10 @@ All notable changes to RoomDeck Audio are documented here.
 - Rebuilt the macOS launcher icon from the approved monogram with transparent corners
 - Simplified the in-app wordmark to use a standalone RD lettermark instead of the launcher icon
 
+### Fixed
+
+- Forced the main window's native controls into dark appearance so search and filter labels remain readable
+
 ## 0.1.0-beta.4 - 2026-08-01
 
 ### Added
