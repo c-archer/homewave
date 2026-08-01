@@ -88,6 +88,38 @@ enum Theme {
     static let purple = Color(red: 124 / 255, green: 77 / 255, blue: 255 / 255)
 }
 
+private struct SystemCardActionButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
+    let isActive: Bool
+
+    init(isActive: Bool = false) {
+        self.isActive = isActive
+    }
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 12, weight: .bold))
+            .foregroundStyle(Color.white.opacity(isEnabled ? 0.96 : 0.45))
+            .padding(.horizontal, 10)
+            .frame(minHeight: 30)
+            .background {
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(
+                        isActive
+                            ? Theme.blue.opacity(configuration.isPressed ? 0.72 : 0.9)
+                            : Color.white.opacity(configuration.isPressed ? 0.22 : 0.14)
+                    )
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(Color.white.opacity(isActive ? 0.18 : 0.24), lineWidth: 1)
+            }
+            .contentShape(RoundedRectangle(cornerRadius: 6))
+            .opacity(isEnabled ? 1 : 0.65)
+    }
+}
+
 @MainActor
 final class SonosModel: ObservableObject {
     @Published private(set) var isSonosAccountConnected = false
@@ -646,16 +678,7 @@ struct MainView: View {
 
 struct ProductWordmark: View {
     var body: some View {
-        HStack(spacing: 10) {
-            HStack(spacing: 0) {
-                Text("R")
-                    .foregroundStyle(Theme.text)
-                Text("D")
-                    .foregroundStyle(Theme.blue)
-            }
-            .font(.system(size: 18, weight: .heavy))
-            .frame(width: 34, height: 34)
-
+        HStack(spacing: 5) {
             HStack(spacing: 5) {
                 Text("ROOMDECK")
                     .foregroundStyle(Theme.text)
@@ -1156,6 +1179,11 @@ struct CloudSystemSidebar: View {
                                     ? "Hide individual speaker controls"
                                     : "Adjust individual speaker volume and mute"
                             )
+                            .buttonStyle(
+                                SystemCardActionButtonStyle(
+                                    isActive: expandedMixerGroupIDs.contains(group.id)
+                                )
+                            )
                         }
 
                         Button {
@@ -1163,6 +1191,7 @@ struct CloudSystemSidebar: View {
                         } label: {
                             Label("Edit group", systemImage: "slider.horizontal.3")
                         }
+                        .buttonStyle(SystemCardActionButtonStyle())
 
                         if group.playerIDs.count > 1 {
                             Button {
@@ -1175,10 +1204,9 @@ struct CloudSystemSidebar: View {
                                 }
                             }
                             .disabled(model.ungroupingCloudGroupIDs.contains(group.id))
+                            .buttonStyle(SystemCardActionButtonStyle())
                         }
                     }
-                    .font(.system(size: 12, weight: .semibold))
-                    .buttonStyle(.bordered)
 
                     if expandedMixerGroupIDs.contains(group.id) {
                         CloudSpeakerMixer(

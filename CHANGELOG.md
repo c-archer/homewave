@@ -12,7 +12,9 @@ All notable changes to RoomDeck Audio are documented here.
 
 - Adopted the RoomDeck Audio v1.0 brand palette and RD monogram across the app and repository
 - Rebuilt the macOS launcher icon from the approved monogram with transparent corners
-- Simplified the in-app wordmark to use a standalone RD lettermark instead of the launcher icon
+- Simplified the in-app wordmark to use the RoomDeck Audio name without an additional icon or lettermark
+- Increased the contrast, size, and selected state of speaker-card action buttons
+- Updated repository links and documentation imagery for the renamed `c-archer/roomdeck` repository
 
 ### Fixed
 

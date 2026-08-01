@@ -1,6 +1,6 @@
 # RoomDeck Audio
 
-[![CI](https://github.com/c-archer/homewave/actions/workflows/ci.yml/badge.svg)](https://github.com/c-archer/homewave/actions/workflows/ci.yml)
+[![CI](https://github.com/c-archer/roomdeck/actions/workflows/ci.yml/badge.svg)](https://github.com/c-archer/roomdeck/actions/workflows/ci.yml)
 
 <img src="Resources/RoomDeckAudioBrand.png" alt="RoomDeck Audio logo" width="240">
 
@@ -20,7 +20,7 @@ RoomDeck Audio is not affiliated with, endorsed by, or sponsored by Sonos, Inc. 
 - Sonos account authorization before controls are shown
 - Rooms, groups, current playback, service metadata, and artwork
 - Create, edit, and split speaker groups
-- Play, pause, previous, next, group volume, per-speaker volume and mute, and macOS media-key controls
+- Play, pause, previous, next, group volume, expandable per-speaker volume and mute, and macOS media-key controls
 - Search and filter albums, playlists, and stations saved in Sonos Favorites
 - Browse and play household Sonos playlists
 - OAuth tokens stored in the current user's macOS Keychain
@@ -42,27 +42,27 @@ Direct music-service catalogue search is intentionally not included. Sonos does 
 Add the repository as a named tap, then install the fully qualified Cask:
 
 ```sh
-brew tap c-archer/roomdeck-audio https://github.com/c-archer/homewave.git
-brew install --cask c-archer/roomdeck-audio/roomdeck-audio
+brew tap c-archer/roomdeck https://github.com/c-archer/roomdeck.git
+brew install --cask c-archer/roomdeck/roomdeck-audio
 ```
 
 Use the fully qualified Cask name to trust only RoomDeck Audio rather than the entire third-party tap. To install updates:
 
 ```sh
 brew update
-brew upgrade --cask c-archer/roomdeck-audio/roomdeck-audio
+brew upgrade --cask c-archer/roomdeck/roomdeck-audio
 ```
 
 Disconnect the Sonos account in RoomDeck Audio before a complete uninstall, then run:
 
 ```sh
 brew uninstall --cask roomdeck-audio
-brew untap c-archer/roomdeck-audio
+brew untap c-archer/roomdeck
 ```
 
 ### Manual Download
 
-Download the Apple Silicon ZIP and matching SHA-256 file from [GitHub Releases](https://github.com/c-archer/homewave/releases), then verify it:
+Download the Apple Silicon ZIP and matching SHA-256 file from [GitHub Releases](https://github.com/c-archer/roomdeck/releases), then verify it:
 
 ```sh
 shasum -a 256 -c "RoomDeck-Audio-0.1.0-beta.4-arm64.zip.sha256"
@@ -73,8 +73,8 @@ Official releases should be Developer ID signed and notarized. The current beta 
 ## Run From Source
 
 ```sh
-git clone https://github.com/c-archer/homewave.git
-cd homewave
+git clone https://github.com/c-archer/roomdeck.git
+cd roomdeck
 ROOMDECK_SONOS_AUTH_BASE_URL=https://auth.example.com swift run RoomDeckAudio
 ```
 
