@@ -1,6 +1,6 @@
 cask "roomdeck-audio" do
-  version "0.1.0-beta.2"
-  sha256 "9c5f6d011800cbba8c872f93a21afb4238736d9e640ea905c414309f424af338"
+  version "0.1.0-beta.3"
+  sha256 "6b3a733b5d63fd78ec3e1d861c122119213374e61eebd4c3f2130e4ffbbd3373"
 
   url "https://github.com/c-archer/homewave/releases/download/v#{version}/RoomDeck-Audio-#{version}-arm64.zip"
   name "RoomDeck Audio"
