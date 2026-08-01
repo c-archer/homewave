@@ -37,13 +37,38 @@ Direct music-service catalogue search is intentionally not included. Sonos does 
 
 ## Install A Release
 
-Download the Apple Silicon ZIP and matching SHA-256 file from GitHub Releases, then verify it:
+### Homebrew
+
+Add the repository as a named tap, then install the fully qualified Cask:
 
 ```sh
-shasum -a 256 -c "RoomDeck-Audio-0.1.0-arm64.zip.sha256"
+brew tap c-archer/roomdeck-audio https://github.com/c-archer/homewave.git
+brew install --cask c-archer/roomdeck-audio/roomdeck-audio
 ```
 
-Official releases should be Developer ID signed and notarized. Do not bypass a macOS warning for a build you do not trust.
+Use the fully qualified Cask name to trust only RoomDeck Audio rather than the entire third-party tap. To install updates:
+
+```sh
+brew update
+brew upgrade --cask c-archer/roomdeck-audio/roomdeck-audio
+```
+
+Disconnect the Sonos account in RoomDeck Audio before a complete uninstall, then run:
+
+```sh
+brew uninstall --cask roomdeck-audio
+brew untap c-archer/roomdeck-audio
+```
+
+### Manual Download
+
+Download the Apple Silicon ZIP and matching SHA-256 file from [GitHub Releases](https://github.com/c-archer/homewave/releases), then verify it:
+
+```sh
+shasum -a 256 -c "RoomDeck-Audio-0.1.0-beta.2-arm64.zip.sha256"
+```
+
+Official releases should be Developer ID signed and notarized. The current beta is ad-hoc signed; do not bypass a macOS warning for a build you do not trust.
 
 ## Run From Source
 

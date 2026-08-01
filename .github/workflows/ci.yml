@@ -33,6 +33,11 @@ jobs:
       - name: Check Swift formatting
         run: swift format lint --configuration .swift-format --recursive --strict Sources Tests Package.swift
 
+      - name: Check Homebrew Cask
+        run: |
+          ruby -c Casks/roomdeck-audio.rb
+          HOMEBREW_NO_AUTO_UPDATE=1 brew style Casks/roomdeck-audio.rb
+
       - name: Run Swift tests
         run: ./Scripts/test.sh --parallel
 

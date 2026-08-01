@@ -4,6 +4,10 @@ All notable changes to RoomDeck Audio are documented here.
 
 ## Unreleased
 
+### Added
+
+- Homebrew Cask and tap installation instructions
+
 ## 0.1.0-beta.2 - 2026-08-01
 
 ### Changed
