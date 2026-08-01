@@ -12,6 +12,7 @@ All notable changes to RoomDeck Audio are documented here.
 
 - Adopted the RoomDeck Audio v1.0 brand palette and RD monogram across the app and repository
 - Rebuilt the macOS launcher icon from the approved monogram with transparent corners
+- Simplified the in-app wordmark to use a standalone RD lettermark instead of the launcher icon
 
 ## 0.1.0-beta.4 - 2026-08-01
 

@@ -642,10 +642,14 @@ struct MainView: View {
 struct ProductWordmark: View {
     var body: some View {
         HStack(spacing: 10) {
-            Image(nsImage: NSApplication.shared.applicationIconImage)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 34, height: 34)
+            HStack(spacing: 0) {
+                Text("R")
+                    .foregroundStyle(Theme.text)
+                Text("D")
+                    .foregroundStyle(Theme.blue)
+            }
+            .font(.system(size: 18, weight: .heavy))
+            .frame(width: 34, height: 34)
 
             HStack(spacing: 5) {
                 Text("ROOMDECK")
