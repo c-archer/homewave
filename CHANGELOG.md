@@ -4,6 +4,8 @@ All notable changes to RoomDeck Audio are documented here.
 
 ## Unreleased
 
+## 0.1.0-beta.1 - 2026-08-01
+
 ### Added
 
 - Native Apple Silicon macOS controller interface

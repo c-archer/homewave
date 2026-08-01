@@ -38,3 +38,5 @@ git push origin v0.1.0
 6. The release workflow tests, packages, signs when configured, notarizes when configured, creates a ZIP and checksum, and publishes the GitHub release.
 7. Verify the checksum and Gatekeeper result from a clean machine.
 8. Confirm sign-in, grouping, ungrouping, volume, favorites, playback, artwork, and media keys against a real system.
+
+Tags with a pre-release suffix, such as `v0.1.0-beta.1`, are published as GitHub pre-releases. They still require HTTPS authentication and privacy-policy origins, but do not satisfy or bypass the stable-release legal approval gate. Clearly identify ad-hoc-signed builds and do not describe pre-releases as notarized or legally cleared.
