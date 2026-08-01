@@ -4,6 +4,10 @@ All notable changes to RoomDeck Audio are documented here.
 
 ## Unreleased
 
+### Fixed
+
+- Release checksums now use the downloadable archive filename instead of the CI staging path
+
 ## 0.1.0-beta.1 - 2026-08-01
 
 ### Added
