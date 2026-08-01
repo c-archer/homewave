@@ -4,6 +4,10 @@ All notable changes to RoomDeck Audio are documented here.
 
 ## Unreleased
 
+### Changed
+
+- Replaced the app icon with an original paired-room waveform mark
+
 ### Fixed
 
 - Release checksums now use the downloadable archive filename instead of the CI staging path
