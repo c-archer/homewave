@@ -33,7 +33,8 @@ struct SonosAuthCallback: Equatable, Sendable {
     let state: String
 
     init?(url: URL) {
-        guard url.scheme?.lowercased() == ProductIdentity.callbackScheme,
+        guard let scheme = url.scheme?.lowercased(),
+            ProductIdentity.callbackSchemes.contains(scheme),
             url.host?.lowercased() == ProductIdentity.callbackHost,
             url.path.isEmpty || url.path == "/",
             let queryItems = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems

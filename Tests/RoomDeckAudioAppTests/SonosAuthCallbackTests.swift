@@ -18,6 +18,17 @@ final class SonosAuthCallbackTests: XCTestCase {
         XCTAssertEqual(callback?.state, state)
     }
 
+    func testParsesLegacyCallbackDuringProductMigration() throws {
+        let url = try XCTUnwrap(
+            URL(
+                string: "homewave://sonos-auth?ticket=\(ticket)&state=\(state)"
+            )
+        )
+        let callback = SonosAuthCallback(url: url)
+        XCTAssertEqual(callback?.ticket, ticket)
+        XCTAssertEqual(callback?.state, state)
+    }
+
     func testRejectsDuplicateSecurityParameters() throws {
         let url = try XCTUnwrap(
             URL(

@@ -77,6 +77,7 @@ cat > "${CONTENTS_DIR}/Info.plist" <<'PLIST'
             <key>CFBundleURLSchemes</key>
             <array>
                 <string>roomdeck-audio</string>
+                <string>homewave</string>
             </array>
         </dict>
     </array>

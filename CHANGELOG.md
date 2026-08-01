@@ -16,6 +16,7 @@ All notable changes to RoomDeck Audio are documented here.
 
 - Renamed the product after a preliminary name-conflict review
 - Replaced the earlier broadcast-wave icon with RoomDeck Audio room-and-pulse artwork
+- Added temporary compatibility for the legacy OAuth app callback during migration
 - Limited the public implementation to documented Sonos Control API and OAuth endpoints
 
 ### Removed

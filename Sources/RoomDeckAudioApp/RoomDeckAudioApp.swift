@@ -5,6 +5,8 @@ import SwiftUI
 enum ProductIdentity {
     static let name = "RoomDeck Audio"
     static let callbackScheme = "roomdeck-audio"
+    static let legacyCallbackScheme = "homewave"
+    static let callbackSchemes: Set<String> = [callbackScheme, legacyCallbackScheme]
     static let callbackHost = "sonos-auth"
 }
 
@@ -20,7 +22,7 @@ struct RoomDeckAudioApp: App {
                 .background(Theme.black)
                 .onOpenURL { model.completeSonosSignIn(from: $0) }
         }
-        .handlesExternalEvents(matching: [ProductIdentity.callbackScheme])
+        .handlesExternalEvents(matching: ProductIdentity.callbackSchemes)
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentMinSize)
         .defaultSize(width: 1_420, height: 860)
@@ -310,7 +312,8 @@ final class SonosModel: ObservableObject {
     }
 
     func completeSonosSignIn(from url: URL) {
-        guard url.scheme?.lowercased() == ProductIdentity.callbackScheme,
+        guard let scheme = url.scheme?.lowercased(),
+            ProductIdentity.callbackSchemes.contains(scheme),
             url.host?.lowercased() == ProductIdentity.callbackHost
         else { return }
         guard let callback = SonosAuthCallback(url: url) else {

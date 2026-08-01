@@ -70,6 +70,8 @@ open "dist/RoomDeck Audio.app"
 
 The Sonos Client Secret must only exist in the Worker secret store. Never bundle it with the app or commit it to Git.
 
+RoomDeck Audio temporarily recognizes the earlier `homewave://sonos-auth` app callback so existing deployments can migrate safely. New deployments must use `roomdeck-audio://sonos-auth`.
+
 ## Build And Test
 
 ```sh
