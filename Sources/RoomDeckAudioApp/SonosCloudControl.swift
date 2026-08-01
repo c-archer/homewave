@@ -20,6 +20,9 @@ struct CloudGroup: Identifiable, Equatable, Sendable {
 struct CloudPlayer: Identifiable, Equatable, Sendable {
     let id: String
     let name: String
+    var volume: Int?
+    var isMuted: Bool
+    var isVolumeFixed: Bool
 }
 
 struct CloudFavorite: Identifiable, Equatable, Sendable {
@@ -134,6 +137,27 @@ actor SonosCloudControl {
             return results.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
         }
 
+        let cloudPlayers = await withTaskGroup(of: CloudPlayer.self) { taskGroup in
+            for item in groups.players {
+                taskGroup.addTask { [self] in
+                    let playerVolume: PlayerVolumeResponse? = try? await request(
+                        pathComponents: ["players", item.id, "playerVolume"]
+                    )
+                    return CloudPlayer(
+                        id: item.id,
+                        name: item.name,
+                        volume: playerVolume?.volume,
+                        isMuted: playerVolume?.muted ?? false,
+                        isVolumeFixed: playerVolume?.fixed ?? false
+                    )
+                }
+            }
+
+            var results: [CloudPlayer] = []
+            for await item in taskGroup { results.append(item) }
+            return results.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        }
+
         let cloudFavorites = favorites.items.map(CloudFavorite.init)
         let groupsWithFavoriteArtwork = enrichedGroups.map { group in
             guard group.artworkURL == nil, let title = group.nowPlaying else { return group }
@@ -147,7 +171,7 @@ actor SonosCloudControl {
             groups: groupsWithFavoriteArtwork,
             favorites: cloudFavorites,
             playlists: playlists.playlists.map(CloudPlaylist.init),
-            players: groups.players.map { CloudPlayer(id: $0.id, name: $0.name) }
+            players: cloudPlayers
         )
     }
 
@@ -165,6 +189,20 @@ actor SonosCloudControl {
         try await command(
             pathComponents: ["groups", groupID, "groupVolume"],
             body: ["volume": min(100, max(0, volume))]
+        )
+    }
+
+    func setPlayerVolume(_ volume: Int, playerID: String) async throws {
+        try await command(
+            pathComponents: ["players", playerID, "playerVolume"],
+            body: ["volume": min(100, max(0, volume))]
+        )
+    }
+
+    func setPlayerMuted(_ muted: Bool, playerID: String) async throws {
+        try await command(
+            pathComponents: ["players", playerID, "playerVolume", "mute"],
+            body: ["muted": muted]
         )
     }
 
@@ -344,6 +382,11 @@ private struct Player: Decodable {
 }
 private struct PlaybackResponse: Decodable { let playbackState: String? }
 private struct VolumeResponse: Decodable { let volume: Int? }
+struct PlayerVolumeResponse: Decodable {
+    let volume: Int?
+    let muted: Bool?
+    let fixed: Bool?
+}
 private struct FavoritesResponse: Decodable {
     let items: [Favorite]
 

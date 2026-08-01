@@ -1,3 +1,4 @@
+import Foundation
 import XCTest
 
 @testable import RoomDeckAudioApp
@@ -36,6 +37,49 @@ final class CloudModelTests: XCTestCase {
         XCTAssertEqual(CloudContentKind(resourceType: "STREAM"), .station)
         XCTAssertEqual(CloudContentKind(resourceType: "TRACK"), .other)
         XCTAssertEqual(CloudContentKind(resourceType: nil), .other)
+    }
+
+    func testCloudPlayerRetainsIndependentVolumeState() {
+        let player = CloudPlayer(
+            id: "player-id",
+            name: "Office",
+            volume: 37,
+            isMuted: true,
+            isVolumeFixed: false
+        )
+
+        XCTAssertEqual(player.volume, 37)
+        XCTAssertTrue(player.isMuted)
+        XCTAssertFalse(player.isVolumeFixed)
+    }
+
+    func testPlayerVolumeResponseDecodesSonosState() throws {
+        let data = Data(#"{"volume":37,"muted":true,"fixed":false}"#.utf8)
+        let response = try JSONDecoder().decode(PlayerVolumeResponse.self, from: data)
+
+        XCTAssertEqual(response.volume, 37)
+        XCTAssertEqual(response.muted, true)
+        XCTAssertEqual(response.fixed, false)
+    }
+
+    func testCloudPlayerCanRepresentFixedOrUnavailableVolume() {
+        let fixedPlayer = CloudPlayer(
+            id: "fixed-player",
+            name: "Line Out",
+            volume: 100,
+            isMuted: false,
+            isVolumeFixed: true
+        )
+        let unavailablePlayer = CloudPlayer(
+            id: "offline-player",
+            name: "Offline Room",
+            volume: nil,
+            isMuted: false,
+            isVolumeFixed: false
+        )
+
+        XCTAssertTrue(fixedPlayer.isVolumeFixed)
+        XCTAssertNil(unavailablePlayer.volume)
     }
 
     func testMusicFiltersAndSearchUseSavedContentMetadata() {

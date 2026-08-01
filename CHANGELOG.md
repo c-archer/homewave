@@ -4,6 +4,10 @@ All notable changes to RoomDeck Audio are documented here.
 
 ## Unreleased
 
+### Added
+
+- Expandable per-speaker volume and mute controls for multi-room groups
+
 ### Changed
 
 - Adopted the RoomDeck Audio v1.0 brand palette and RD monogram across the app and repository

@@ -104,6 +104,7 @@ final class SonosModel: ObservableObject {
     private var pendingSonosSignInState: String?
     private var sonosSignInCallbackTickets = OneTimeCallbackRegistry()
     private var cloudVolumeTasks: [String: Task<Void, Never>] = [:]
+    private var cloudPlayerVolumeTasks: [String: Task<Void, Never>] = [:]
 
     var selectedCloudGroup: CloudGroup? {
         if let selectedCloudGroupID,
@@ -283,6 +284,57 @@ final class SonosModel: ObservableObject {
         }
     }
 
+    func previewCloudPlayerVolume(_ volume: Double, for player: CloudPlayer) {
+        guard !player.isVolumeFixed else { return }
+        let target = min(100, max(0, Int(volume.rounded())))
+        updatePlayer(player.id) { $0.volume = target }
+        updateGroupVolume(containing: player.id)
+        cloudPlayerVolumeTasks[player.id]?.cancel()
+        cloudPlayerVolumeTasks[player.id] = Task { [weak self] in
+            do {
+                try await Task.sleep(for: .milliseconds(180))
+                guard !Task.isCancelled, let self else { return }
+                try await self.cloudControl.setPlayerVolume(target, playerID: player.id)
+            } catch is CancellationError {
+                return
+            } catch {
+                guard let self else { return }
+                self.sonosAccountStatus = error.localizedDescription
+            }
+        }
+    }
+
+    func setCloudPlayerVolume(_ volume: Double, for player: CloudPlayer) {
+        guard !player.isVolumeFixed else { return }
+        let target = min(100, max(0, Int(volume.rounded())))
+        cloudPlayerVolumeTasks[player.id]?.cancel()
+        cloudPlayerVolumeTasks[player.id] = nil
+        updatePlayer(player.id) { $0.volume = target }
+        updateGroupVolume(containing: player.id)
+        Task {
+            do {
+                try await cloudControl.setPlayerVolume(target, playerID: player.id)
+            } catch {
+                sonosAccountStatus = error.localizedDescription
+                await refreshCloudData()
+            }
+        }
+    }
+
+    func toggleCloudPlayerMute(_ player: CloudPlayer) {
+        guard !player.isVolumeFixed else { return }
+        let target = !player.isMuted
+        updatePlayer(player.id) { $0.isMuted = target }
+        Task {
+            do {
+                try await cloudControl.setPlayerMuted(target, playerID: player.id)
+            } catch {
+                sonosAccountStatus = error.localizedDescription
+                await refreshCloudData()
+            }
+        }
+    }
+
     func playCloudFavorite(_ favorite: CloudFavorite, on group: CloudGroup) {
         selectCloudGroup(group)
         Task {
@@ -421,6 +473,22 @@ final class SonosModel: ObservableObject {
     private func updateGroup(_ id: String, mutate: (inout CloudGroup) -> Void) {
         guard let index = cloudGroups.firstIndex(where: { $0.id == id }) else { return }
         mutate(&cloudGroups[index])
+    }
+
+    private func updatePlayer(_ id: String, mutate: (inout CloudPlayer) -> Void) {
+        guard let index = cloudPlayers.firstIndex(where: { $0.id == id }) else { return }
+        mutate(&cloudPlayers[index])
+    }
+
+    private func updateGroupVolume(containing playerID: String) {
+        guard let groupIndex = cloudGroups.firstIndex(where: { $0.playerIDs.contains(playerID) }) else { return }
+        let playerVolumes = cloudGroups[groupIndex].playerIDs.compactMap { id in
+            cloudPlayers.first(where: { $0.id == id })?.volume
+        }
+        guard playerVolumes.count == cloudGroups[groupIndex].playerIDs.count else { return }
+        cloudGroups[groupIndex].volume = Int(
+            (Double(playerVolumes.reduce(0, +)) / Double(playerVolumes.count)).rounded()
+        )
     }
 
     private func updateNowPlayingInfo() {
@@ -970,6 +1038,8 @@ struct CloudSystemSidebar: View {
     @State private var showsNewGroup = false
     @State private var editingGroup: CloudGroup?
     @State private var draftVolumes: [String: Double] = [:]
+    @State private var draftPlayerVolumes: [String: Double] = [:]
+    @State private var expandedMixerGroupIDs: Set<String> = []
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -1058,6 +1128,27 @@ struct CloudSystemSidebar: View {
                     }
 
                     HStack(spacing: 8) {
+                        if group.playerIDs.count > 1 {
+                            Button {
+                                if expandedMixerGroupIDs.contains(group.id) {
+                                    expandedMixerGroupIDs.remove(group.id)
+                                } else {
+                                    expandedMixerGroupIDs.insert(group.id)
+                                }
+                            } label: {
+                                Label(
+                                    "Speakers",
+                                    systemImage: expandedMixerGroupIDs.contains(group.id)
+                                        ? "chevron.up" : "speaker.wave.2.fill"
+                                )
+                            }
+                            .help(
+                                expandedMixerGroupIDs.contains(group.id)
+                                    ? "Hide individual speaker controls"
+                                    : "Adjust individual speaker volume and mute"
+                            )
+                        }
+
                         Button {
                             editingGroup = group
                         } label: {
@@ -1079,6 +1170,13 @@ struct CloudSystemSidebar: View {
                     }
                     .font(.system(size: 12, weight: .semibold))
                     .buttonStyle(.bordered)
+
+                    if expandedMixerGroupIDs.contains(group.id) {
+                        CloudSpeakerMixer(
+                            group: group,
+                            draftVolumes: $draftPlayerVolumes
+                        )
+                    }
                 }
                 .padding(14)
                 .background(Color.white.opacity(model.selectedCloudGroupID == group.id ? 0.22 : 0.16))
@@ -1098,6 +1196,105 @@ struct CloudSystemSidebar: View {
         .padding(.vertical, 22)
         .sheet(isPresented: $showsNewGroup) { CloudGroupEditor(seedGroup: nil) }
         .sheet(item: $editingGroup) { CloudGroupEditor(seedGroup: $0) }
+    }
+}
+
+struct CloudSpeakerMixer: View {
+    @EnvironmentObject private var model: SonosModel
+    let group: CloudGroup
+    @Binding var draftVolumes: [String: Double]
+
+    private var players: [CloudPlayer] {
+        group.playerIDs.compactMap { id in
+            model.cloudPlayers.first(where: { $0.id == id })
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Divider().overlay(Color.white.opacity(0.18))
+                .padding(.bottom, 4)
+
+            ForEach(players) { player in
+                VStack(alignment: .leading, spacing: 7) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "hifispeaker.fill")
+                            .font(.system(size: 13))
+                            .foregroundStyle(Color.white.opacity(0.66))
+                            .frame(width: 18)
+                        Text(player.name)
+                            .font(.system(size: 13, weight: .semibold))
+                            .lineLimit(1)
+                        Spacer()
+                        if player.isVolumeFixed {
+                            Text("Fixed output")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(Color.white.opacity(0.48))
+                        } else {
+                            Button {
+                                model.toggleCloudPlayerMute(player)
+                            } label: {
+                                Image(
+                                    systemName: player.isMuted
+                                        ? "speaker.slash.fill" : "speaker.wave.2.fill"
+                                )
+                                .font(.system(size: 12, weight: .semibold))
+                                .frame(width: 28, height: 24)
+                                .background(
+                                    Color.white.opacity(player.isMuted ? 0.24 : 0.1)
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 5))
+                            }
+                            .buttonStyle(.plain)
+                            .help(player.isMuted ? "Unmute \(player.name)" : "Mute \(player.name)")
+                        }
+                    }
+
+                    HStack(spacing: 8) {
+                        Slider(
+                            value: Binding(
+                                get: {
+                                    draftVolumes[player.id] ?? Double(player.volume ?? 0)
+                                },
+                                set: { value in
+                                    draftVolumes[player.id] = value
+                                    model.previewCloudPlayerVolume(value, for: player)
+                                }
+                            ),
+                            in: 0...100,
+                            onEditingChanged: { editing in
+                                if editing {
+                                    draftVolumes[player.id] = Double(player.volume ?? 0)
+                                } else {
+                                    let value = draftVolumes[player.id] ?? Double(player.volume ?? 0)
+                                    model.setCloudPlayerVolume(value, for: player)
+                                    draftVolumes[player.id] = nil
+                                }
+                            }
+                        )
+                        .disabled(player.volume == nil || player.isVolumeFixed)
+
+                        if let volume = player.volume {
+                            Text("\(Int((draftVolumes[player.id] ?? Double(volume)).rounded()))")
+                                .font(.system(size: 12, weight: .semibold))
+                                .frame(width: 28, alignment: .trailing)
+                        } else {
+                            Text("--")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(Color.white.opacity(0.48))
+                                .frame(width: 28, alignment: .trailing)
+                        }
+                    }
+                }
+                .padding(.vertical, 9)
+
+                if player.id != players.last?.id {
+                    Divider().overlay(Color.white.opacity(0.1))
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Individual speaker controls for \(group.name)")
     }
 }
 
