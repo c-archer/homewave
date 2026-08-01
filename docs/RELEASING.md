@@ -37,7 +37,7 @@ git push origin v0.1.0
 
 6. The release workflow tests, packages, signs when configured, notarizes when configured, creates a ZIP and checksum, and publishes the GitHub release.
 7. Update `Casks/roomdeck-audio.rb` with the published version and SHA-256 checksum.
-8. Run `brew style Casks/roomdeck-audio.rb`, audit the tapped Cask, and fetch its public archive.
+8. Run `brew style Casks/roomdeck-audio.rb`, tap the public repository, and fetch the Cask archive. The official-cask audit will continue to reject prerelease, non-notarized builds and should only be required once those release gates are met.
 9. Verify the checksum and Gatekeeper result from a clean machine.
 10. Confirm sign-in, grouping, ungrouping, volume, favorites, playback, artwork, and media keys against a real system.
 

@@ -7,6 +7,10 @@ cask "roomdeck-audio" do
   desc "Native Apple Silicon controller for compatible Sonos systems"
   homepage "https://github.com/c-archer/homewave"
 
+  livecheck do
+    skip "Only prerelease builds are currently published"
+  end
+
   depends_on arch: :arm64
   depends_on macos: :sonoma
 
